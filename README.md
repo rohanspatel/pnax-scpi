@@ -1,2 +1,3 @@
-# ecal-corrections
-Extracting measurement data from a Keysight N4433A ECal module to diagnose issues and perform more explicit two-port calibrations
+# PNA-X SCPI Scripts
+
+Python-based scripts to connect to and control a Keysight N5247A PNA-X network analyser
