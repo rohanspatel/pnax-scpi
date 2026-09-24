@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import time
 import pyvisa
 
 TIMEOUT_MS = 10000
