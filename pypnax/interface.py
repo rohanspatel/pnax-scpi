@@ -3,10 +3,12 @@
 import sys
 import pyvisa
 
-TIMEOUT_MS = 10000
-TERMINATION_CHAR = "\n"
+class _scpiInterface:
 
-class scpiInterface:
+    _TIMEOUT_MS = 10000
+    _TERMINATION_CHAR = "\n"
+
+    _INSTANCES: dict[str, "_scpiInterface"] = {}
 
     def __init__(
         self,
@@ -15,8 +17,6 @@ class scpiInterface:
         """ Set default values and other class variables """
 
         self.ip_address = ip_address
-        self.timeout_ms = TIMEOUT_MS
-        self.term_char = TERMINATION_CHAR
 
         self.resource_string = f"TCPIP0::{ip_address}::inst0::INSTR"
         self.rm = pyvisa.ResourceManager()
@@ -24,14 +24,25 @@ class scpiInterface:
 
         self.connect()
 
+    @classmethod
+    def get_shared(cls, ip_address: str) -> "_scpiInterface":
+        """ Get a shared instance of the _scpiInterface class """
+
+        ip_address = strip_ip(ip_address)
+
+        if ip_address not in cls._INSTANCES:
+            cls._INSTANCES[ip_address] = cls(ip_address)
+
+        return cls._INSTANCES[ip_address]
+
     def connect(self) -> None:
         """ Open the VISA session to the instrument """
 
         try:
             self.inst = self.rm.open_resource(self.resource_string)
-            self.inst.timeout = self.timeout_ms
-            self.inst.read_termination = self.term_char
-            self.inst.write_termination = self.term_char
+            self.inst.timeout = self._TIMEOUT_MS
+            self.inst.read_termination = self._TERMINATION_CHAR
+            self.inst.write_termination = self._TERMINATION_CHAR
             print(f"Connected to: {self.resource_string}")
 
         except pyvisa.errors.VisaIOError as e:
@@ -60,6 +71,14 @@ class scpiInterface:
         """ Wait for the instrument to complete its current operation """
 
         self.query("*OPC?")
+
+
+def strip_ip(ip_address: str) -> str:
+    """ Remove any whitespace and leading zeros from the IP address """
+
+    octets = ip_address.strip().split(".")
+    octets = [str(int(octet)) for octet in octets]
+    return ".".join(octets)
 
 
 if __name__ == "__main__":
