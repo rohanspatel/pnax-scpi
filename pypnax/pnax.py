@@ -39,6 +39,7 @@ class PNAXConfig:
     power        = _Query("SOUR{ch}:POW1?", float)          # dBm
     if_bandwidth = _Query("SENS{ch}:BWID?", float)          # Hz
     measurements = _Query("CALC{ch}:PAR:CAT:EXT?", _csv_strings)
+    save_format  = _Query("MMEM:STOR:TRAC:FORM:SNP?", str)
 
     def __init__(self, interface: _scpiInterface, channel: int = 1) -> None:
 
@@ -67,7 +68,7 @@ class PNAX():
 
         self.interface = _scpiInterface.get_shared(address)
         self.config = PNAXConfig(self.interface, channel)
-        self.ecal = ECal(self.interface)
+        self.ecal = ECal(self)
 
         if preset:
             self.preset()

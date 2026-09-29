@@ -1,12 +1,14 @@
 
-from pypnax.interface import _scpiInterface
+from skrf import Network
+from pypnax.utilities import snp_from_string
 
 class ECal():
 
-    def __init__(self, interface: _scpiInterface):
+    def __init__(self, pnax) -> None:
         """ Class for specifically controlling the ECal module connected to a PNA-X via USB """
 
-        self.interface = interface
+        self._pnax = pnax
+        self.interface = pnax.interface
 
         # Input validation
         self._ecal_ports = ["A", "B", "C", "D"]
@@ -47,7 +49,7 @@ class ECal():
         self,
         port: str,
         state: str | int
-    ) -> str:
+    ) -> Network:
         """ Gets S-parameters from the ECal's internal memory for the given port and state
 
         Ports
@@ -61,8 +63,12 @@ class ECal():
         Transmission States: through, confidence
         """
 
+        format = self._pnax.config.save_format
+
         port, code = self._resolve(port, state)
-        return self.interface.query(f"SENS:CORR:CKIT:ECAL:PATH:DATA? {port},{code}")
+        data_string = self.interface.query(f"SENS:CORR:CKIT:ECAL:PATH:DATA? {port},{code}")
+
+        return snp_from_string(data_string, len(port), fmt=format)
 
     def _resolve(
         self,
