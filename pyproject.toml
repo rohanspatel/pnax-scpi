@@ -8,6 +8,5 @@ version = "0.1.0"
 dependencies = [
     "pyvisa",
     "pyvisa-py",
-    "matplotlib",
     "scikit-rf"
 ]
