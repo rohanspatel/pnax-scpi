@@ -30,10 +30,33 @@ def snp_from_string(string: str, n_ports: int, fmt: str = "RI") -> rf.Network:
 
     return rf.Network(frequency=freqs, s=s_params)
 
+def valid_measurement(measurement: str, n_ports: int = 2) -> bool:
+    """ Check if a measurement name is valid for the given number of ports (eg. S11, S21, etc.) """
+
+    if len(measurement) == 3 and measurement.startswith("S"):
+        measurement = measurement[1:]
+    elif len(measurement) == 2:
+        pass
+    else:
+        return False
+
+    for char in measurement:
+        try:
+            port = int(char)
+        except ValueError:
+            return False
+
+        if port < 1 or port > n_ports:
+            return False
+
+    return True
+
 def _int(value: str) -> int:
     """ Cast a string to an integer """
     return int(float(value))
 
-def _csv_strings(value: str) -> list[str]:
-    """ Split a string of comma separated values into a list of strings """
-    return value.split(",")
+def _measurement_list(value: str) -> list[str]:
+    """ Returns a list of measurement names from the SCPI response string """
+
+    response_list = value.strip('"').split(",")     # Contains names and measurement types
+    return [r for r in response_list if not valid_measurement(r)]   # Removes measurement types

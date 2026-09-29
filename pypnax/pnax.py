@@ -2,7 +2,7 @@
 from typing import Callable
 from pypnax.interface import _scpiInterface
 from pypnax.ecal import ECal
-from pypnax.utilities import _int, _csv_strings
+from pypnax.utilities import _int, _measurement_list, valid_measurement
 
 class _Query:
     """ Sends a query each time the object is accessed and parses the response through the given
