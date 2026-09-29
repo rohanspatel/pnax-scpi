@@ -32,14 +32,15 @@ class _Query:
 class PNAXConfig:
     """ Live view of a PNA-X channel's configuration; every access queries the instrument """
 
-    identity     = _Query("*IDN?", str)                             # Manufacturer, Model, Serial, Firmware
-    start_freq   = _Query("SENS{ch}:FREQ:STAR?", float)             # Hz
-    stop_freq    = _Query("SENS{ch}:FREQ:STOP?", float)             # Hz
-    num_points   = _Query("SENS{ch}:SWE:POIN?", _int)               # Number of points in sweep
-    power        = _Query("SOUR{ch}:POW1?", float)                  # dBm
-    if_bandwidth = _Query("SENS{ch}:BWID?", float)                  # Hz
-    measurements = _Query("CALC{ch}:PAR:CAT:EXT?", _csv_strings)    # Currently defined traces
-    save_format  = _Query("MMEM:STOR:TRAC:FORM:SNP?", str)          # RI, MA, DB
+    identity            = _Query("*IDN?", str)                                  # Manufacturer, Model, Serial, Firmware
+    start_freq          = _Query("SENS{ch}:FREQ:STAR?", float)                  # Hz
+    stop_freq           = _Query("SENS{ch}:FREQ:STOP?", float)                  # Hz
+    num_points          = _Query("SENS{ch}:SWE:POIN?", _int)                    # Number of points in sweep
+    power               = _Query("SOUR{ch}:POW1?", float)                       # dBm
+    if_bandwidth        = _Query("SENS{ch}:BWID?", float)                       # Hz
+    measurements        = _Query("CALC{ch}:PAR:CAT:EXT?", _measurement_list)    # Currently defined traces
+    save_format         = _Query("MMEM:STOR:TRAC:FORM:SNP?", str)               # RI, MA, DB
+    current_measurement = _Query("CALC{ch}:PAR:SEL?", str)                      # Currently selected measurement name
 
     def __init__(self, interface: _scpiInterface, channel: int = 1) -> None:
 
@@ -97,3 +98,24 @@ class PNAX():
         """ Set the number of sweep points for the measurement """
 
         self.interface.write(f"SENS{self.config.channel}:SWE:POIN {points}")
+
+    def _create_measurement(self, measurement: str, name: str) -> None:
+        """ Create a new measurement with the given name """
+
+        self.interface.write(f'CALC{self.config.channel}:PAR:DEF \"{name}\",{measurement}')
+
+    def select_measurement(self, measurement: str) -> None:
+        """ Select an existing measurement, or create a new one if it doesn't exist """
+
+        measurement = measurement.strip().upper()
+        if not valid_measurement(measurement):
+            raise ValueError(f"Invalid measurement name: {measurement}")
+        if not measurement.startswith("S"):
+            measurement = f"S{measurement}"
+
+        measurement_name = f"CH{self.config.channel}_{measurement}_1"
+
+        if measurement_name not in self.config.measurements:
+            self._create_measurement(measurement, measurement_name)
+
+        self.interface.write(f"CALC{self.config.channel}:PAR:SEL \"{measurement_name}\"")
