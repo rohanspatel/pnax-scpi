@@ -3,10 +3,10 @@ from pypnax.interface import _scpiInterface
 
 class ECal():
 
-    def __init__(self, address: str):
-        """ Opens a SCPI connection or retrieves an existing one for the given IP """
+    def __init__(self, interface: _scpiInterface):
+        """ Class for specifically controlling the ECal module connected to a PNA-X via USB """
 
-        self.interface = _scpiInterface.get_shared(address)
+        self.interface = interface
 
         # Input validation
         self._ecal_ports = ["A", "B", "C", "D"]

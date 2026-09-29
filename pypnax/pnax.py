@@ -1,6 +1,7 @@
 
 from typing import Callable
 from pypnax.interface import _scpiInterface
+from pypnax.ecal import ECal
 
 
 def _int(value: str) -> int:
@@ -70,6 +71,7 @@ class PNAX():
 
         self.interface = _scpiInterface.get_shared(address)
         self.config = PNAXConfig(self.interface, channel)
+        self.ecal = ECal(self.interface)
 
     def set_frequency(
         self,
