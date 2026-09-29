@@ -70,3 +70,23 @@ class PNAX():
 
         self.interface = _scpiInterface.get_shared(address)
         self.config = PNAXConfig(self.interface, channel)
+
+    def set_frequency(
+        self,
+        start: str | float,
+        stop: str | float, 
+        step: str | float | None = None
+    ) -> None:
+        """ Set the frequency range (and step size) for the measurement """
+
+        self.interface.write(f"SENS{self.config.channel}:FREQ:STAR {start}")
+        self.interface.write(f"SENS{self.config.channel}:FREQ:STOP {stop}")
+
+        if step is not None:
+            n_pts = int((float(stop) - float(start)) / float(step)) + 1
+            self.set_sweep_points(n_pts)
+
+    def set_sweep_points(self, points: int) -> None:
+        """ Set the number of sweep points for the measurement """
+
+        self.interface.write(f"SENS{self.config.channel}:SWE:POIN {points}")
