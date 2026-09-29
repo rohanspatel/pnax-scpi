@@ -34,8 +34,8 @@ def snp_from_string(string: str, n_ports: int, fmt: str = "RI") -> rf.Network:
 
     return rf.Network(frequency=freqs, s=s_params)
 
-def valid_measurement(measurement: str, n_ports: int = 2) -> bool:
-    """ Check if a measurement name is valid for the given number of ports (eg. S11, S21, etc.) """
+def valid_measurement(measurement: str, n_ports: int = 4) -> bool:
+    """ Is this a valid S-parameter for a VNA with this many ports? """
 
     if len(measurement) == 3 and measurement.startswith("S"):
         measurement = measurement[1:]
