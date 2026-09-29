@@ -28,6 +28,10 @@ def snp_from_string(string: str, n_ports: int, fmt: str = "RI") -> rf.Network:
     s_params = complex_s(data[:, 1::2], data[:, 2::2], fmt=fmt)
     s_params = s_params.reshape((-1, n_ports, n_ports))
 
+    # 2-port data ordered column-wise (S11, S21, S12, S22); N-port data row-wise
+    if n_ports == 2:
+        s_params = s_params.transpose(0, 2, 1)
+
     return rf.Network(frequency=freqs, s=s_params)
 
 def valid_measurement(measurement: str, n_ports: int = 2) -> bool:
