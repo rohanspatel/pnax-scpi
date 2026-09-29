@@ -32,14 +32,14 @@ class _Query:
 class PNAXConfig:
     """ Live view of a PNA-X channel's configuration; every access queries the instrument """
 
-    identity     = _Query("*IDN?", str)
-    start_freq   = _Query("SENS{ch}:FREQ:STAR?", float)     # Hz
-    stop_freq    = _Query("SENS{ch}:FREQ:STOP?", float)     # Hz
-    num_points   = _Query("SENS{ch}:SWE:POIN?", _int)
-    power        = _Query("SOUR{ch}:POW1?", float)          # dBm
-    if_bandwidth = _Query("SENS{ch}:BWID?", float)          # Hz
-    measurements = _Query("CALC{ch}:PAR:CAT:EXT?", _csv_strings)
-    save_format  = _Query("MMEM:STOR:TRAC:FORM:SNP?", str)
+    identity     = _Query("*IDN?", str)                             # Manufacturer, Model, Serial, Firmware
+    start_freq   = _Query("SENS{ch}:FREQ:STAR?", float)             # Hz
+    stop_freq    = _Query("SENS{ch}:FREQ:STOP?", float)             # Hz
+    num_points   = _Query("SENS{ch}:SWE:POIN?", _int)               # Number of points in sweep
+    power        = _Query("SOUR{ch}:POW1?", float)                  # dBm
+    if_bandwidth = _Query("SENS{ch}:BWID?", float)                  # Hz
+    measurements = _Query("CALC{ch}:PAR:CAT:EXT?", _csv_strings)    # Currently defined traces
+    save_format  = _Query("MMEM:STOR:TRAC:FORM:SNP?", str)          # RI, MA, DB
 
     def __init__(self, interface: _scpiInterface, channel: int = 1) -> None:
 
