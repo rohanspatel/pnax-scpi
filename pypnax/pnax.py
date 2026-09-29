@@ -2,7 +2,7 @@
 from typing import Callable
 from pypnax.interface import _scpiInterface
 from pypnax.ecal import ECal
-from pypnax.utilities import _int
+from pypnax.utilities import _int, _csv_strings
 
 class _Query:
     """ Sends a query each time the object is accessed and parses the response through the given
@@ -38,6 +38,7 @@ class PNAXConfig:
     num_points   = _Query("SENS{ch}:SWE:POIN?", _int)
     power        = _Query("SOUR{ch}:POW1?", float)          # dBm
     if_bandwidth = _Query("SENS{ch}:BWID?", float)          # Hz
+    measurements = _Query("CALC{ch}:PAR:CAT:EXT?", _csv_strings)
 
     def __init__(self, interface: _scpiInterface, channel: int = 1) -> None:
 
