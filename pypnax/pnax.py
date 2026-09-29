@@ -2,12 +2,7 @@
 from typing import Callable
 from pypnax.interface import _scpiInterface
 from pypnax.ecal import ECal
-
-
-def _int(value: str) -> int:
-    """ Cast a string to an integer """
-    return int(float(value))
-
+from pypnax.utilities import _int
 
 class _Query:
     """ Sends a query each time the object is accessed and parses the response through the given
