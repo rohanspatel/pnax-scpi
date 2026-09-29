@@ -66,12 +66,20 @@ class PNAXConfig:
 
 class PNAX():
 
-    def __init__(self, address: str, channel: int = 1):
+    def __init__(self, address: str, channel: int = 1, preset: bool = True) -> None:
         """ Opens a SCPI connection or retrives an existing one for the given IP """
 
         self.interface = _scpiInterface.get_shared(address)
         self.config = PNAXConfig(self.interface, channel)
         self.ecal = ECal(self.interface)
+
+        if preset:
+            self.preset()
+
+    def preset(self) -> None:
+        """ Reset the instrument to its 'preset' state """
+
+        self.interface.write("SYST:PRES")
 
     def set_frequency(
         self,
