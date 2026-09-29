@@ -1,8 +1,9 @@
 
 from typing import Callable
+from skrf import Network
 from pypnax.interface import _scpiInterface
 from pypnax.ecal import ECal
-from pypnax.utilities import _int, _measurement_list, valid_measurement
+from pypnax.utilities import _int, _measurement_list, valid_measurement, snp_from_string
 
 class _Query:
     """ Sends a query each time the object is accessed and parses the response through the given
@@ -119,3 +120,28 @@ class PNAX():
             self._create_measurement(measurement, measurement_name)
 
         self.interface.write(f"CALC{self.config.channel}:PAR:SEL \"{measurement_name}\"")
+
+    def measure(self, *ports: int) -> Network:
+        """ Take a single sweep and return the S-parameters between the given ports
+
+        eg. measure(1, 2) returns a 2-port Network containing S11, S21, S12 and S22
+        """
+
+        ports = sorted(set(ports))
+        if not ports:
+            raise ValueError("At least one port must be given")
+
+        ch = self.config.channel
+
+        # Define every S-parameter between the ports so the PNA sources from each of them
+        for receiver in ports:
+            for source in ports:
+                self.select_measurement(f"S{receiver}{source}")
+
+        self.interface.write(f"SENS{ch}:SWE:MODE SING")
+        self.interface.wait()
+
+        port_list = ",".join(str(p) for p in ports)
+        response = self.interface.query(f'CALC{ch}:DATA:SNP:PORT? "{port_list}"')
+
+        return snp_from_string(response, len(ports), self.config.save_format)
