@@ -3,7 +3,8 @@ from typing import Callable
 from skrf import Network
 from pypnax.interface import _scpiInterface
 from pypnax.ecal import ECal
-from pypnax.utilities import _int, _measurement_list, valid_measurement, snp_from_string
+from pypnax.utilities import _int, _measurement_list
+from pypnax.utilities import valid_measurement, snp_from_string, parse_frequency
 
 class _Query:
     """ Sends a query each time the object is accessed and parses the response through the given
@@ -87,6 +88,10 @@ class PNAX():
         step: str | float | None = None
     ) -> None:
         """ Set the frequency range (and step size) for the measurement """
+
+        start = parse_frequency(str(start))
+        stop = parse_frequency(str(stop))
+        step = parse_frequency(str(step)) if step is not None else None
 
         self.interface.write(f"SENS{self.config.channel}:FREQ:STAR {start}")
         self.interface.write(f"SENS{self.config.channel}:FREQ:STOP {stop}")

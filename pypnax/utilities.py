@@ -55,6 +55,41 @@ def valid_measurement(measurement: str, n_ports: int = 4) -> bool:
 
     return True
 
+def parse_frequency(value: str) -> float:
+    """ Convert a frequency string with units to a float in Hz """
+
+    frequency_units = {
+        "G": 1E9,
+        "M": 1E6,
+        "k": 1E3,
+        "GHz": 1E9,
+        "MHz": 1E6,
+        "kHz": 1E3,
+        "Hz": 1,
+    }
+
+    # Guard against already float inputs
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    # Parse pre-defined values separately
+    if value == "MIN":
+        return 10E6     # Minimum for A-series PNA
+    if value == "MAX":
+        return 67E9     # Maximum for N5247A
+
+    for unit, multiplier in frequency_units.items():
+        if value.endswith(unit):
+            return float(value[:-len(unit)]) * multiplier
+
+    # Try converting to float if no units are found
+    try:
+        return float(value)
+    except ValueError:
+        pass
+
+    raise ValueError(f"Invalid frequency format: {value}")
+
 def _int(value: str) -> int:
     """ Cast a string to an integer """
     return int(float(value))
