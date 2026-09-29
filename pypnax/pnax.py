@@ -119,9 +119,15 @@ class PNAX():
         if not measurement.startswith("S"):
             measurement = f"S{measurement}"
 
-        measurement_name = f"CH{self.config.channel}_{measurement}_1"
+        measurement_name_prefix = f"CH{self.config.channel}_{measurement}"
 
-        if measurement_name not in self.config.measurements:
+        measurement_name = None
+        for existing_name in self.config.measurements:
+            if existing_name.startswith(measurement_name_prefix):
+                measurement_name = existing_name
+                break
+        else:
+            measurement_name = f"{measurement_name_prefix}_{len(self.config.measurements) + 1}"
             self._create_measurement(measurement, measurement_name)
 
         self.interface.write(f"CALC{self.config.channel}:PAR:SEL \"{measurement_name}\"")
