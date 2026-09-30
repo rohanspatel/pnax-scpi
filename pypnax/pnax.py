@@ -106,6 +106,21 @@ class PNAX():
 
         self.interface.write(f"SENS{self.config.channel}:SWE:POIN {points}")
 
+    def set_if_bandwidth(self, bandwidth: str | float) -> None:
+        """ Set the IF bandwidth for the measurement """
+        
+        bandwidth = parse_frequency(str(bandwidth))
+        self.interface.write(f"SENS{self.config.channel}:BWID {bandwidth}")
+
+    def set_averaging(self, count: int) -> None:
+        """ Enable averaging if count > 1, otherwise disable averaging """
+
+        if count < 1:
+            self.interface.write(f"SENS{self.config.channel}:AVER OFF")
+        else:
+            self.interface.write(f"SENS{self.config.channel}:AVER ON")
+            self.interface.write(f"SENS{self.config.channel}:AVER:COUN {count}")
+
     def _create_measurement(self, measurement: str, name: str) -> None:
         """ Create a new measurement with the given name """
 
