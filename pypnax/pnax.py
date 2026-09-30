@@ -3,16 +3,16 @@ from typing import Callable
 from skrf import Network
 from pypnax.interface import _scpiInterface
 from pypnax.ecal import ECal
-from pypnax.utilities import _int, _measurement_list
+from pypnax.utilities import _int, _averaging, _measurement_list
 from pypnax.utilities import valid_measurement, snp_from_string, parse_frequency
 
 class _Query:
     """ Sends a query each time the object is accessed and parses the response through the given
     function """
 
-    def __init__(self, command: str, parse: Callable[[str], object]) -> None:
+    def __init__(self, command: str | tuple[str, ...], parse: Callable[..., object]) -> None:
 
-        self.command = command
+        self.commands = (command,) if isinstance(command, str) else command
         self.parse = parse
 
     def __set_name__(self, owner, name: str) -> None:
@@ -24,8 +24,8 @@ class _Query:
         if config is None:
             return self
 
-        response = config.interface.query(self.command.format(ch=config.channel))
-        return self.parse(response)
+        responses = [config.interface.query(c.format(ch=config.channel)) for c in self.commands]
+        return self.parse(*responses)
 
     def __set__(self, config: "PNAXConfig", value) -> None:
         raise AttributeError(f"'{self.name}' is read from the instrument and cannot be set")
@@ -34,15 +34,16 @@ class _Query:
 class PNAXConfig:
     """ Live view of a PNA-X channel's configuration; every access queries the instrument """
 
-    identity            = _Query("*IDN?", str)                                  # Manufacturer, Model, Serial, Firmware
-    start_freq          = _Query("SENS{ch}:FREQ:STAR?", float)                  # Hz
-    stop_freq           = _Query("SENS{ch}:FREQ:STOP?", float)                  # Hz
-    num_points          = _Query("SENS{ch}:SWE:POIN?", _int)                    # Number of points in sweep
-    power               = _Query("SOUR{ch}:POW1?", float)                       # dBm
-    if_bandwidth        = _Query("SENS{ch}:BWID?", float)                       # Hz
-    measurements        = _Query("CALC{ch}:PAR:CAT:EXT?", _measurement_list)    # Currently defined traces
-    save_format         = _Query("MMEM:STOR:TRAC:FORM:SNP?", str)               # RI, MA, DB
-    current_measurement = _Query("CALC{ch}:PAR:SEL?", str)                      # Currently selected measurement name
+    identity = _Query("*IDN?", str)  # Manufacturer, Model, Serial, Firmware
+    start_freq = _Query("SENS{ch}:FREQ:STAR?", float)  # Hz
+    stop_freq = _Query("SENS{ch}:FREQ:STOP?", float)  # Hz
+    num_points = _Query("SENS{ch}:SWE:POIN?", _int)  # Number of points in sweep
+    power = _Query("SOUR{ch}:POW1?", float)  # dBm
+    if_bandwidth = _Query("SENS{ch}:BWID?", float)  # Hz
+    measurements = _Query("CALC{ch}:PAR:CAT:EXT?", _measurement_list)  # Currently defined traces
+    save_format = _Query("MMEM:STOR:TRAC:FORM:SNP?", str)  # RI, MA, DB
+    current_measurement = _Query("CALC{ch}:PAR:SEL?", str)  # Currently selected measurement name
+    averaging = _Query(("SENS{ch}:AVER?", "SENS{ch}:AVER:COUN?"), _averaging)  # Average count, 0 if disabled
 
     def __init__(self, interface: _scpiInterface, channel: int = 1) -> None:
 

@@ -94,6 +94,10 @@ def _int(value: str) -> int:
     """ Cast a string to an integer """
     return int(float(value))
 
+def _averaging(state: str, count: str) -> int:
+    """ Returns the average count, or 0 if averaging is disabled """
+    return _int(count) if state.strip().upper() in ("1", "ON") else 0
+
 def _measurement_list(value: str) -> list[str]:
     """ Returns a list of measurement names from the SCPI response string """
 
