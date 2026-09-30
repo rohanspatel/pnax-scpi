@@ -148,6 +148,18 @@ class PNAX():
 
         self.interface.write(f"CALC{self.config.channel}:PAR:SEL \"{measurement_name}\"")
 
+    def trigger(self) -> None:
+        """ Triggers a single sweep, or multiple sweeps if averaging is enabled """
+
+        ch = self.config.channel
+        if (avg := self.config.averaging) > 0:
+            for _ in range(avg):
+                self.interface.write(f"SENS{ch}:SWE:MODE SING")
+                self.interface.wait()
+        else:
+            self.interface.write(f"SENS{ch}:SWE:MODE SING")
+            self.interface.wait()
+
     def measure(self, *ports: int) -> Network:
         """ Take a single sweep and return the S-parameters between the given ports
 
@@ -165,8 +177,7 @@ class PNAX():
             for source in ports:
                 self.select_measurement(f"S{receiver}{source}")
 
-        self.interface.write(f"SENS{ch}:SWE:MODE SING")
-        self.interface.wait()
+        self.trigger()
 
         port_list = ",".join(str(p) for p in ports)
         response = self.interface.query(f'CALC{ch}:DATA:SNP:PORT? "{port_list}"')
