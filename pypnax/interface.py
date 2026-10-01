@@ -72,6 +72,15 @@ class _scpiInterface:
 
         self.query("*OPC?")
 
+    def indefinite_wait(self) -> None:
+        """ Wait indefinitely for the instrument to complete its current operation """
+
+        try: 
+            self.inst.timeout = None
+            self.wait()
+        finally:
+            self.inst.timeout = self._TIMEOUT_MS
+
 
 def strip_ip(ip_address: str) -> str:
     """ Remove any whitespace and leading zeros from the IP address """

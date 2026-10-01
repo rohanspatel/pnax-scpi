@@ -152,13 +152,18 @@ class PNAX():
         """ Triggers a single sweep, or multiple sweeps if averaging is enabled """
 
         ch = self.config.channel
+        self.interface.write(f"SENS{ch}:AVER:CLE")  # Clear averaging for new measurement
+
+        # Sweep enough times for a full averaging cycle
         if (avg := self.config.averaging) > 0:
-            for _ in range(avg):
-                self.interface.write(f"SENS{ch}:SWE:MODE SING")
-                self.interface.wait()
+            self.interface.write(f"SENS{ch}:SWE:GRO:COUN {avg}")
+            self.interface.write(f"SENS{ch}:SWE:MODE GRO")
+
+        # Just sweep once
         else:
             self.interface.write(f"SENS{ch}:SWE:MODE SING")
-            self.interface.wait()
+
+        self.interface.indefinite_wait()
 
     def measure(self, *ports: int) -> Network:
         """ Take a single sweep and return the S-parameters between the given ports
